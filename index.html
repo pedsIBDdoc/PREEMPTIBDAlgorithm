@@ -151,7 +151,7 @@
             'q_fc_initial_check': {
                 title: 'Decision Point: Initial Fecal Calprotectin (FC) Level',
                 text: '<p>What is the initial Fecal Calprotectin (FC) level?</p>',
-                options: [ // fcLevel property added to store the choice
+                options: [ 
                     { label: 'FC < 100 µg/g', nextStep: 'q_ibd_serologies_abnormal', style: 'positive', fcLevelValue: '<100' },
                     { label: 'FC 100-249 µg/g', nextStep: 'action_repeat_fc', style: 'neutral', fcLevelValue: '100-249' },
                     { label: 'FC ≥ 250 µg/g', nextStep: 'action_repeat_fc', style: 'negative', fcLevelValue: '>=250' }
@@ -168,7 +168,7 @@
             'q_fc_repeat_check': {
                 title: 'Decision Point: Repeat Fecal Calprotectin (FC) Level',
                 text: '<p>After 6-8 weeks, what is the repeat Fecal Calprotectin (FC) level?</p>',
-                options: [ // value property added to identify the choice in JS
+                options: [ 
                     { label: 'Repeat FC < 100 µg/g', value: '<100', style: 'positive' },
                     { label: 'Repeat FC 100-249 µg/g', value: '100-249', style: 'negative' },
                     { label: 'Repeat FC ≥ 250 µg/g', value: '>=250', style: 'negative' }
@@ -176,30 +176,26 @@
                 phase: 'screening',
                 isDecision: true
             },
-            'outcome_refer_ibd_md_capsule': { // New outcome step
-                title: 'Outcome: Referral to IBD MD (Capsule Endoscopy Considered)',
-                text: "<p>Due to elevated or persistently elevated Fecal Calprotectin (two instances of 100-249 µg/g), the individual is referred to an IBD Center MD for evaluation for IBD, consideration of capsule endoscopy if warranted.</p>",
-                options: [{ label: 'Restart Algorithm', nextStep: 'start', style: 'reset' }],
-                phase: 'followup',
-                isOutcome: true,
-                outcomeStyle: 'negative'
+            'outcome_refer_ibd_md_capsule': { 
+                title: 'Action: Referral to IBD MD (Capsule Endoscopy Considered)',
+                text: "<p>Due to elevated or persistently elevated Fecal Calprotectin (two instances of 100-249 µg/g), the individual is referred to an IBD Center MD for evaluation for IBD, consideration of capsule endoscopy if warranted.</p><p>The next step is to determine if IBD is diagnosed.</p>",
+                options: [{ label: 'Proceed to Diagnosis Check', nextStep: 'q_ibd_diagnosed_from_referral' }], // Default style
+                phase: 'screening' // No longer an outcome, but a step leading to diagnosis check
             },
-            'outcome_refer_ibd_md_ileocolonoscopy': { // New outcome step
-                title: 'Outcome: Referral to IBD MD (Ileocolonoscopy Considered)',
-                text: "<p>Due to elevated or persistently elevated Fecal Calprotectin (at least one instance ≥250 µg/g, or initial 100-249 µg/g followed by repeat ≥250 µg/g), the individual is referred to an IBD Center MD for evaluation for IBD, with strong consideration for ileocolonoscopy.</p>",
-                options: [{ label: 'Restart Algorithm', nextStep: 'start', style: 'reset' }],
-                phase: 'followup',
-                isOutcome: true,
-                outcomeStyle: 'negative'
+            'outcome_refer_ibd_md_ileocolonoscopy': { 
+                title: 'Action: Referral to IBD MD (Ileocolonoscopy Considered)',
+                text: "<p>Due to elevated or persistently elevated Fecal Calprotectin (at least one instance ≥250 µg/g, or initial 100-249 µg/g followed by repeat ≥250 µg/g), the individual is referred to an IBD Center MD for evaluation for IBD, with strong consideration for ileocolonoscopy.</p><p>The next step is to determine if IBD is diagnosed.</p>",
+                options: [{ label: 'Proceed to Diagnosis Check', nextStep: 'q_ibd_diagnosed_from_referral' }], // Default style
+                phase: 'screening' // No longer an outcome
             },
-            'q_ibd_diagnosed_from_referral': { // This step might be reached if other paths lead to referral
+            'q_ibd_diagnosed_from_referral': { 
                 title: 'Decision Point: IBD Diagnosed Following Referral?',
-                text: '<p>Following evaluation by the IBD Center MD (after referral due to Red Flags, Abnormal IUS), is IBD diagnosed?</p><p>Note: FC-based referrals now lead to specific outcome descriptions.</p>',
+                text: '<p>Following evaluation by the IBD Center MD (after referral due to Red Flags, Abnormal IUS, or elevated Fecal Calprotectin), is IBD diagnosed?</p>',
                 options: [
                     { label: 'Yes, IBD Diagnosed', nextStep: 'outcome_ibd_diagnosed_exit', style: 'negative' },
                     { label: 'No, IBD Not Diagnosed', nextStep: 'outcome_yearly_followup', style: 'positive' }
                 ],
-                phase: 'screening',
+                phase: 'screening', // Or 'followup' depending on how you see this step
                 isDecision: true
             },
             'outcome_ibd_diagnosed_exit': {
@@ -371,10 +367,10 @@
                             } else if (repeatFcValue === '100-249') {
                                 if (firstFcLevel === '100-249') {
                                     currentStepId = 'outcome_refer_ibd_md_capsule';
-                                } else { // Handles firstFcLevel === '>=250' or null (though null should be rare here)
+                                } else { 
                                     currentStepId = 'outcome_refer_ibd_md_ileocolonoscopy';
                                 }
-                            } else { // repeatFcValue is '>=250'
+                            } else { 
                                 currentStepId = 'outcome_refer_ibd_md_ileocolonoscopy';
                             }
                             renderStep();
