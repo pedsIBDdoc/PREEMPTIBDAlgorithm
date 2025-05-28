@@ -88,7 +88,7 @@
                          <li>Provide stool for Fecal Calprotectin (FC) and sample for research</li>
                          <li>Undergo Intestinal Ultrasound (IUS)</li>
                          <li>Blood draw (Whole Blood & Serum) for research</li>
-                         <li>Receive tailored education on risk and prevention strategies</li>
+                         <li>Receive education on risk and prevention strategies</li>
                        </ul>`,
                 options: [{ label: 'Proceed to Colonoscopy Eligibility', nextStep: 'q_colonoscopy_eligible' }],
                 phase: 'baseline'
@@ -105,10 +105,9 @@
             },
             'action_refer_colonoscopy': {
                 title: 'Action: Refer for Screening Colonoscopy',
-                text: '<p>The individual is referred for a screening colonoscopy. Biopsies will be collected for research purposes.</p><p>This specific path of the interactive tool concludes here. Please consult with healthcare providers for subsequent steps based on colonoscopy findings.</p>',
-                options: [{ label: 'Restart Algorithm', nextStep: 'start', style: 'reset' }],
-                phase: 'baseline',
-                isOutcome: true
+                text: '<p>The individual is referred for a screening colonoscopy, and biopsies will be collected for research purposes.</p><p>The algorithm will now proceed to assess for red flags as part of the comprehensive screening process.</p>',
+                options: [{ label: 'Continue to Red Flag Screening', nextStep: 'q_red_flags' }], // Default style will apply (Dark Indigo)
+                phase: 'baseline' // No longer an 'isOutcome'
             },
             'q_red_flags': {
                 title: 'Decision Point: Positive Screen for Red Flags?',
@@ -131,7 +130,7 @@
                 text: '<p>Is the Intestinal Ultrasound (IUS) found to be abnormal?</p>',
                 options: [
                     { label: 'Yes, IUS Abnormal', nextStep: 'action_refer_ibd_eval_IUS', style: 'negative' },
-                    { label: 'No, IUS Normal', nextStep: 'q_fc_initial_check', style: 'neutral' } // Changed nextStep
+                    { label: 'No, IUS Normal', nextStep: 'q_fc_initial_check', style: 'neutral' }
                 ],
                 phase: 'screening',
                 isDecision: true
@@ -142,7 +141,7 @@
                 options: [{ label: 'Proceed to Diagnosis Check', nextStep: 'q_ibd_diagnosed_from_referral' }],
                 phase: 'screening'
             },
-            'q_fc_initial_check': { // New name for initial FC check
+            'q_fc_initial_check': {
                 title: 'Decision Point: Initial Fecal Calprotectin (FC) Level',
                 text: '<p>What is the initial Fecal Calprotectin (FC) level?</p>',
                 options: [
@@ -156,10 +155,10 @@
             'action_repeat_fc': {
                 title: 'Action: Repeat FC in 6-8 Weeks',
                 text: '<p>The Fecal Calprotectin (FC) test will be repeated in 6-8 weeks.</p>',
-                options: [{ label: 'Proceed to Repeat FC Result', nextStep: 'q_fc_repeat_check' }], // Changed nextStep
+                options: [{ label: 'Proceed to Repeat FC Result', nextStep: 'q_fc_repeat_check' }],
                 phase: 'screening'
             },
-            'q_fc_repeat_check': { // New name for repeat FC check
+            'q_fc_repeat_check': {
                 title: 'Decision Point: Repeat Fecal Calprotectin (FC) Level',
                 text: '<p>After 6-8 weeks, what is the repeat Fecal Calprotectin (FC) level?</p>',
                 options: [
@@ -203,7 +202,7 @@
                          <li>Provide Fecal Calprotectin (FC) and sample for research</li>
                          <li>Undergo Intestinal Ultrasound (IUS)</li>
                          <li>Blood draw for IBD serologies and whole blood & serum for research</li>
-                         <li>Education on Updates to Prevention Interventions & Trials</li>
+                         <li>Education on Prevention, Trials & Lifestyle</li>
                        </ul>`,
                 options: [{ label: 'Restart Algorithm', nextStep: 'start', style: 'reset' }],
                 phase: 'followup',
@@ -245,7 +244,7 @@
                          <li>Provide Fecal Calprotectin (FC) and sample for research</li>
                          <li>Undergo Intestinal Ultrasound (IUS)</li>
                          <li>Blood draw for IBD serologies and whole blood & serum for research</li>
-                         <li>Education on Updates to Prevention Interventions & Trials</li>
+                         <li>Education on Prevention, Trials & Lifestyle</li>
                        </ul>`,
                 options: [{ label: 'Restart Algorithm', nextStep: 'start', style: 'reset' }],
                 phase: 'followup',
@@ -302,7 +301,7 @@
 
                 let cardBgColor = colors.lightBlueTint; 
                 if (step.isDecision) cardBgColor = colors.lightPinkTint; 
-                if (step.isOutcome) {
+                if (step.isOutcome) { // Check if isOutcome is true
                     cardBgColor = step.outcomeStyle === 'positive' ? colors.lightBlueTint : 'rgba(220, 41, 141, 0.05)'; 
                 }
                 algorithmDisplay.style.backgroundColor = cardBgColor;
@@ -313,9 +312,9 @@
                     const button = document.createElement('button');
                     button.textContent = option.label;
                     
-                    let bgColor = colors.darkIndigo;
+                    let bgColor = colors.darkIndigo; // Default button color
                     let textColor = colors.white;
-                    let hoverBgColor = '#1a1957';
+                    let hoverBgColor = '#1a1957'; // Darker indigo
 
                     if (option.style === 'positive') {
                         bgColor = colors.brightBlue;
