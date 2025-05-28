@@ -10,7 +10,7 @@
         - Algorithm Flow: Represented by dynamically shown/hidden HTML divs styled as process boxes, decision diamonds, and outcome boxes using Tailwind CSS. Goal: Guide, Organize. Interaction: Click buttons to traverse paths.
         - Steps: HTML text blocks/lists. Goal: Inform. Interaction: Read, then click "Proceed."
         - Decision Points: HTML divs styled distinctively. Goal: Query/Branch. Interaction: Click "Yes" or "No" buttons.
-        - CONFIRMATION: NO SVG graphics used. NO Chart.js/Plotly.js used. NO Mermaid JS used. Gemini API features removed. -->
+        - CONFIRMATION: NO SVG graphics used. NO Chart.js/Plotly.js used. NO Mermaid JS used. Gemini API features removed. Logo removed. -->
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -67,13 +67,16 @@
             <div id="step-options" class="mt-6 flex flex-col sm:flex-row sm:flex-wrap gap-3 sm:justify-end"></div>
         </main>
 
-        <footer class="text-center mt-8">
-            <button id="reset-button" class="px-6 py-2 text-white font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-opacity-75"
+        <footer class="text-center mt-12 pt-8 border-t border-slate-200">
+            <button id="reset-button" class="mb-8 px-6 py-2 text-white font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-opacity-75"
                     style="background-color: #808080; border-color: #6b7280;"
                     onmouseover="this.style.backgroundColor='#6b7280';"
                     onmouseout="this.style.backgroundColor='#808080';">
                 Restart Algorithm
             </button>
+            <p class="text-xs text-[#212070] mt-4">
+                Copyright &copy; <span id="currentYear"></span> Mount Sinai, Icahn School of Medicine, Susan & Leonard Feinstein IBD Center.
+            </p>
         </footer>
     </div>
 
@@ -179,14 +182,14 @@
             'outcome_refer_ibd_md_capsule': { 
                 title: 'Action: Referral to IBD MD (Capsule Endoscopy Considered)',
                 text: "<p>Due to elevated or persistently elevated Fecal Calprotectin (two instances of 100-249 µg/g), the individual is referred to an IBD Center MD for evaluation for IBD, consideration of capsule endoscopy if warranted.</p><p>The next step is to determine if IBD is diagnosed.</p>",
-                options: [{ label: 'Proceed to Diagnosis Check', nextStep: 'q_ibd_diagnosed_from_referral' }], // Default style
-                phase: 'screening' // No longer an outcome, but a step leading to diagnosis check
+                options: [{ label: 'Proceed to Diagnosis Check', nextStep: 'q_ibd_diagnosed_from_referral' }], 
+                phase: 'screening' 
             },
             'outcome_refer_ibd_md_ileocolonoscopy': { 
                 title: 'Action: Referral to IBD MD (Ileocolonoscopy Considered)',
                 text: "<p>Due to elevated or persistently elevated Fecal Calprotectin (at least one instance ≥250 µg/g, or initial 100-249 µg/g followed by repeat ≥250 µg/g), the individual is referred to an IBD Center MD for evaluation for IBD, with strong consideration for ileocolonoscopy.</p><p>The next step is to determine if IBD is diagnosed.</p>",
-                options: [{ label: 'Proceed to Diagnosis Check', nextStep: 'q_ibd_diagnosed_from_referral' }], // Default style
-                phase: 'screening' // No longer an outcome
+                options: [{ label: 'Proceed to Diagnosis Check', nextStep: 'q_ibd_diagnosed_from_referral' }], 
+                phase: 'screening' 
             },
             'q_ibd_diagnosed_from_referral': { 
                 title: 'Decision Point: IBD Diagnosed Following Referral?',
@@ -195,7 +198,7 @@
                     { label: 'Yes, IBD Diagnosed', nextStep: 'outcome_ibd_diagnosed_exit', style: 'negative' },
                     { label: 'No, IBD Not Diagnosed', nextStep: 'outcome_yearly_followup', style: 'positive' }
                 ],
-                phase: 'screening', // Or 'followup' depending on how you see this step
+                phase: 'screening', 
                 isDecision: true
             },
             'outcome_ibd_diagnosed_exit': {
@@ -395,6 +398,9 @@
             firstFcLevel = null; // Reset the stored first FC level
             renderStep();
         };
+        
+        // Set current year in footer
+        document.getElementById('currentYear').textContent = new Date().getFullYear();
 
         renderStep();
     </script>
