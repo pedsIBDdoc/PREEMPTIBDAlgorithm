@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive IBD Prevention Clinic Algorithm</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc; /* bg-slate-50 (very light gray) */
+            color: #00002D; /* Near Black */
+        }
+        .step-card {
+            min-height: 250px;
+            transition: opacity 0.5s ease-in-out;
+        }
+        .crumb.active-crumb {
+            font-weight: 600;
+            color: #06ABEB; /* Bright Blue */
+        }
+        .chart-container { /* Placeholder as per requirements */
+            position: relative; width: 100%; max-width: 600px; margin-left: auto; margin-right: auto; height: 300px; max-height: 400px;
+        }
+        @media (min-width: 768px) { .chart-container { height: 350px; } }
+
+        .header-text {
+            color: #00002D; /* Near Black */
+        }
+        .subheader-text {
+            color: #212070; /* Dark Indigo */
+        }
+        .breadcrumb-arrow {
+            color: #212070; /* Dark Indigo for arrows */
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center p-4 sm:p-6">
+
+    <div class="w-full max-w-2xl mx-auto">
+        <header class="text-center mb-8">
+            <h1 class="text-2xl sm:text-3xl font-bold header-text">Interactive IBD Prevention Clinic Algorithm</h1>
+            <p class="text-sm sm:text-base subheader-text mt-2">Navigate the clinical algorithm step-by-step to understand the IBD prevention protocol.</p>
+        </header>
+
+        <div id="breadcrumb" class="flex flex-wrap justify-center items-center space-x-1 sm:space-x-2 text-xs sm:text-sm text-[#808080] mb-6">
+            <span id="crumb-start" class="crumb">Start</span>
+            <span class="font-semibold breadcrumb-arrow">&rarr;</span>
+            <span id="crumb-baseline" class="crumb">Baseline</span>
+            <span class="font-semibold breadcrumb-arrow">&rarr;</span>
+            <span id="crumb-screening" class="crumb">Screening</span>
+            <span class="font-semibold breadcrumb-arrow">&rarr;</span>
+            <span id="crumb-assessment" class="crumb">Risk Assessment</span>
+            <span class="font-semibold breadcrumb-arrow">&rarr;</span>
+            <span id="crumb-followup" class="crumb">Follow-up/Outcome</span>
+        </div>
+
+        <main id="algorithm-display" class="bg-white p-6 sm:p-8 rounded-xl shadow-2xl step-card">
+            <h2 id="step-title" class="text-xl font-semibold mb-4 text-[#00002D]"></h2>
+            <div id="step-text" class="text-[#212070] space-y-3"></div>
+            <div id="step-options" class="mt-6 flex flex-col sm:flex-row sm:flex-wrap gap-3 sm:justify-end"></div>
+        </main>
+
+        <footer class="text-center mt-8">
+            <button id="reset-button" class="px-6 py-2 text-white font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-opacity-75"
+                    style="background-color: #808080; border-color: #6b7280;"
+                    onmouseover="this.style.backgroundColor='#6b7280';"
+                    onmouseout="this.style.backgroundColor='#808080';">
+                Restart Algorithm
+            </button>
+        </footer>
+    </div>
+
+    <script>
+        const steps = {
+            'start': {
+                title: 'Start: High-Risk Individual',
+                text: '<p>This protocol is for high-risk first-degree relatives of individuals with Inflammatory Bowel Disease (IBD).</p>',
+                options: [{ label: 'Begin Baseline Protocol', nextStep: 'baseline_intro' }],
+                phase: 'start'
+            },
+            'baseline_intro': {
+                title: 'Phase 1: Baseline Protocol',
+                text: `<p>The following baseline procedures will be performed for eligible individuals:</p>
+                       <ul class="list-disc list-inside pl-4 space-y-1 mt-2">
+                         <li>Complete Questionnaires</li>
+                         <li>Provide stool for Fecal Calprotectin (FC) and sample for research</li>
+                         <li>Undergo Intestinal Ultrasound (IUS)</li>
+                         <li>Blood draw (Whole Blood & Serum) for research</li>
+                         <li>Receive tailored education on risk and prevention strategies</li>
+                       </ul>`,
+                options: [{ label: 'Proceed to Colonoscopy Eligibility', nextStep: 'q_colonoscopy_eligible' }],
+                phase: 'baseline'
+            },
+            'q_colonoscopy_eligible': {
+                title: 'Decision Point: Eligible for Screening Colonoscopy?',
+                text: '<p>Based on clinical assessment and guidelines, is the individual eligible for a screening colonoscopy at this stage?</p>',
+                options: [
+                    { label: 'Yes', nextStep: 'action_refer_colonoscopy', style: 'positive' },
+                    { label: 'No', nextStep: 'q_red_flags', style: 'neutral' }
+                ],
+                phase: 'baseline',
+                isDecision: true
+            },
+            'action_refer_colonoscopy': {
+                title: 'Action: Refer for Screening Colonoscopy',
+                text: '<p>The individual is referred for a screening colonoscopy. Biopsies will be collected for research purposes.</p><p>This specific path of the interactive tool concludes here. Please consult with healthcare providers for subsequent steps based on colonoscopy findings.</p>',
+                options: [{ label: 'Restart Algorithm', nextStep: 'start', style: 'reset' }],
+                phase: 'baseline',
+                isOutcome: true
+            },
+            'q_red_flags': {
+                title: 'Decision Point: Positive Screen for Red Flags?',
+                text: '<p>Does the initial screening (e.g., questionnaires, clinical assessment) indicate any "red flags" suggestive of active IBD?</p>',
+                options: [
+                    { label: 'Yes, Red Flags Present', nextStep: 'action_refer_ibd_eval_RF', style: 'negative' },
+                    { label: 'No Red Flags', nextStep: 'q_ius_abnormal', style: 'neutral' }
+                ],
+                phase: 'screening',
+                isDecision: true
+            },
+            'action_refer_ibd_eval_RF': { 
+                title: 'Action: Referral to IBD Center MD (due to Red Flags)',
+                text: '<p>Due to the presence of red flags, the individual is referred to an IBD Center MD for evaluation for IBD. This may include consideration for colonoscopy with biopsies if warranted.</p>',
+                options: [{ label: 'Proceed to Diagnosis Check', nextStep: 'q_ibd_diagnosed_from_referral' }],
+                phase: 'screening'
+            },
+            'q_ius_abnormal': {
+                title: 'Decision Point: Intestinal Ultrasound (IUS) Abnormal?',
+                text: '<p>Is the Intestinal Ultrasound (IUS) found to be abnormal?</p>',
+                options: [
+                    { label: 'Yes, IUS Abnormal', nextStep: 'action_refer_ibd_eval_IUS', style: 'negative' },
+                    { label: 'No, IUS Normal', nextStep: 'q_fc_initial_check', style: 'neutral' } // Changed nextStep
+                ],
+                phase: 'screening',
+                isDecision: true
+            },
+            'action_refer_ibd_eval_IUS': { 
+                title: 'Action: Referral to IBD Center MD (due to Abnormal IUS)',
+                text: '<p>Due to an abnormal Intestinal Ultrasound, the individual is referred to an IBD Center MD for evaluation for IBD.</p>',
+                options: [{ label: 'Proceed to Diagnosis Check', nextStep: 'q_ibd_diagnosed_from_referral' }],
+                phase: 'screening'
+            },
+            'q_fc_initial_check': { // New name for initial FC check
+                title: 'Decision Point: Initial Fecal Calprotectin (FC) Level',
+                text: '<p>What is the initial Fecal Calprotectin (FC) level?</p>',
+                options: [
+                    { label: 'FC < 100 µg/g', nextStep: 'q_ibd_serologies_abnormal', style: 'positive' },
+                    { label: 'FC 100-249 µg/g', nextStep: 'action_repeat_fc', style: 'neutral' },
+                    { label: 'FC ≥ 250 µg/g', nextStep: 'action_repeat_fc', style: 'negative' }
+                ],
+                phase: 'screening',
+                isDecision: true
+            },
+            'action_repeat_fc': {
+                title: 'Action: Repeat FC in 6-8 Weeks',
+                text: '<p>The Fecal Calprotectin (FC) test will be repeated in 6-8 weeks.</p>',
+                options: [{ label: 'Proceed to Repeat FC Result', nextStep: 'q_fc_repeat_check' }], // Changed nextStep
+                phase: 'screening'
+            },
+            'q_fc_repeat_check': { // New name for repeat FC check
+                title: 'Decision Point: Repeat Fecal Calprotectin (FC) Level',
+                text: '<p>After 6-8 weeks, what is the repeat Fecal Calprotectin (FC) level?</p>',
+                options: [
+                    { label: 'Repeat FC < 100 µg/g', nextStep: 'outcome_yearly_followup', style: 'positive' },
+                    { label: 'Repeat FC 100-249 µg/g', nextStep: 'action_refer_ibd_eval_FC', style: 'negative' },
+                    { label: 'Repeat FC ≥ 250 µg/g', nextStep: 'action_refer_ibd_eval_FC', style: 'negative' }
+                ],
+                phase: 'screening',
+                isDecision: true
+            },
+            'action_refer_ibd_eval_FC': { 
+                title: 'Action: Referral to IBD Center MD (due to Elevated FC)',
+                text: '<p>Due to elevated or persistently elevated Fecal Calprotectin, the individual is referred to an IBD Center MD for evaluation for IBD.</p>',
+                options: [{ label: 'Proceed to Diagnosis Check', nextStep: 'q_ibd_diagnosed_from_referral' }],
+                phase: 'screening'
+            },
+            'q_ibd_diagnosed_from_referral': {
+                title: 'Decision Point: IBD Diagnosed Following Referral?',
+                text: '<p>Following evaluation by the IBD Center MD (after referral due to Red Flags, Abnormal IUS, or Elevated FC), is IBD diagnosed?</p>',
+                options: [
+                    { label: 'Yes, IBD Diagnosed', nextStep: 'outcome_ibd_diagnosed_exit', style: 'negative' },
+                    { label: 'No, IBD Not Diagnosed', nextStep: 'outcome_yearly_followup', style: 'positive' }
+                ],
+                phase: 'screening',
+                isDecision: true
+            },
+            'outcome_ibd_diagnosed_exit': {
+                title: 'Outcome: IBD Diagnosed - Exit Prevention Protocol',
+                text: '<p>IBD has been diagnosed. The individual will exit this Prevention Protocol and enter an Early Disease Protocol (e.g., COMPASS/PRECISE).</p>',
+                options: [{ label: 'Restart Algorithm', nextStep: 'start', style: 'reset' }],
+                phase: 'followup',
+                isOutcome: true,
+                outcomeStyle: 'negative'
+            },
+            'outcome_yearly_followup': {
+                title: 'Outcome: Yearly Follow-Up Advised',
+                text: `<p>IBD was not diagnosed after referral, OR Fecal Calprotectin levels indicate yearly follow-up, OR risk assessment indicates yearly follow-up.</p>
+                       <p class="mt-2">The individual should attend the Prevention Clinic for yearly follow-up, which includes:</p>
+                       <ul class="list-disc list-inside pl-4 space-y-1 mt-2">
+                         <li>Complete Questionnaires</li>
+                         <li>Provide Fecal Calprotectin (FC) and sample for research</li>
+                         <li>Undergo Intestinal Ultrasound (IUS)</li>
+                         <li>Blood draw for IBD serologies and whole blood & serum for research</li>
+                         <li>Education on Updates to Prevention Interventions & Trials</li>
+                       </ul>`,
+                options: [{ label: 'Restart Algorithm', nextStep: 'start', style: 'reset' }],
+                phase: 'followup',
+                isOutcome: true,
+                outcomeStyle: 'positive'
+            },
+            'q_ibd_serologies_abnormal': {
+                title: 'Decision Point: IBD Serologies Abnormal?',
+                text: '<p>Are the IBD serologies (blood tests) found to be abnormal?</p>',
+                options: [
+                    { label: 'Yes, Serologies Abnormal', nextStep: 'action_calculate_risk_percentile', style: 'negative' },
+                    { label: 'No, Serologies Normal', nextStep: 'outcome_2yearly_followup', style: 'positive' }
+                ],
+                phase: 'assessment',
+                isDecision: true
+            },
+            'action_calculate_risk_percentile': {
+                title: 'Action: Calculate Risk Percentile',
+                text: '<p>Based on the abnormal IBD serologies and potentially other factors, a risk percentile for developing IBD is calculated.</p>',
+                options: [{ label: 'Proceed to Risk Percentile Check', nextStep: 'q_risk_percentile_top25' }],
+                phase: 'assessment'
+            },
+            'q_risk_percentile_top25': {
+                title: 'Decision Point: Risk Percentile in Top 25%?',
+                text: '<p>Is the calculated risk percentile in the top 25% (highest risk group)?</p>',
+                options: [
+                    { label: 'Yes, Top 25%', nextStep: 'outcome_yearly_followup', style: 'negative' }, 
+                    { label: 'No, Not Top 25%', nextStep: 'outcome_2yearly_followup', style: 'positive' } 
+                ],
+                phase: 'assessment',
+                isDecision: true
+            },
+            'outcome_2yearly_followup': {
+                title: 'Outcome: Every 2 Years Follow-Up Advised',
+                text: `<p>IBD serologies were normal OR risk assessment indicates follow-up every 2 years.</p>
+                       <p class="mt-2">The individual should attend the Prevention Clinic for follow-up every two years, which includes:</p>
+                       <ul class="list-disc list-inside pl-4 space-y-1 mt-2">
+                         <li>Complete Questionnaires</li>
+                         <li>Provide Fecal Calprotectin (FC) and sample for research</li>
+                         <li>Undergo Intestinal Ultrasound (IUS)</li>
+                         <li>Blood draw for IBD serologies and whole blood & serum for research</li>
+                         <li>Education on Updates to Prevention Interventions & Trials</li>
+                       </ul>`,
+                options: [{ label: 'Restart Algorithm', nextStep: 'start', style: 'reset' }],
+                phase: 'followup',
+                isOutcome: true,
+                outcomeStyle: 'positive'
+            }
+        };
+
+        let currentStepId = 'start';
+
+        const algorithmDisplay = document.getElementById('algorithm-display');
+        const stepTitleElem = document.getElementById('step-title');
+        const stepTextElem = document.getElementById('step-text');
+        const stepOptionsElem = document.getElementById('step-options');
+        const resetButton = document.getElementById('reset-button');
+
+        // Brand Colors
+        const colors = {
+            brightBlue: '#06ABEB',
+            pinkMagenta: '#DC298D',
+            darkIndigo: '#212070',
+            nearBlack: '#00002D',
+            gray: '#808080',
+            white: '#FFFFFF',
+            lightBlueTint: 'rgba(6, 171, 235, 0.1)', 
+            lightPinkTint: 'rgba(220, 41, 141, 0.1)' 
+        };
+
+        function updateBreadcrumb(phase) {
+            document.querySelectorAll('#breadcrumb .crumb').forEach(crumb => crumb.classList.remove('active-crumb'));
+            if (phase) {
+                const activeCrumbElem = document.getElementById(`crumb-${phase}`);
+                if (activeCrumbElem) activeCrumbElem.classList.add('active-crumb');
+            }
+        }
+        
+        function renderStep() {
+            const step = steps[currentStepId];
+            if (!step) {
+                console.error('Error: Step not found: ' + currentStepId);
+                stepTitleElem.textContent = 'Error';
+                stepTextElem.innerHTML = '<p>An error occurred. Please restart the algorithm.</p>';
+                stepOptionsElem.innerHTML = '';
+                updateBreadcrumb(null);
+                return;
+            }
+            
+            algorithmDisplay.style.opacity = '0'; 
+            
+            setTimeout(() => {
+                stepTitleElem.textContent = step.title;
+                stepTextElem.innerHTML = step.text;
+                stepOptionsElem.innerHTML = '';
+
+                let cardBgColor = colors.lightBlueTint; 
+                if (step.isDecision) cardBgColor = colors.lightPinkTint; 
+                if (step.isOutcome) {
+                    cardBgColor = step.outcomeStyle === 'positive' ? colors.lightBlueTint : 'rgba(220, 41, 141, 0.05)'; 
+                }
+                algorithmDisplay.style.backgroundColor = cardBgColor;
+                algorithmDisplay.style.opacity = '1';
+
+
+                step.options.forEach(option => {
+                    const button = document.createElement('button');
+                    button.textContent = option.label;
+                    
+                    let bgColor = colors.darkIndigo;
+                    let textColor = colors.white;
+                    let hoverBgColor = '#1a1957';
+
+                    if (option.style === 'positive') {
+                        bgColor = colors.brightBlue;
+                        hoverBgColor = '#058bc1'; 
+                    } else if (option.style === 'negative') {
+                        bgColor = colors.pinkMagenta;
+                        hoverBgColor = '#b82275'; 
+                    } else if (option.style === 'neutral') {
+                        bgColor = colors.gray;
+                        hoverBgColor = '#6b7280'; 
+                    } else if (option.style === 'reset') {
+                        bgColor = colors.gray;
+                        hoverBgColor = '#6b7280';
+                    }
+                    
+                    button.className = `w-full sm:w-auto px-5 py-2.5 font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-opacity-75`;
+                    button.style.backgroundColor = bgColor;
+                    button.style.color = textColor;
+                    button.style.borderColor = hoverBgColor; 
+                    button.onmouseover = () => button.style.backgroundColor = hoverBgColor;
+                    button.onmouseout = () => button.style.backgroundColor = bgColor;
+
+                    button.onclick = () => {
+                        currentStepId = option.nextStep;
+                        renderStep();
+                    };
+                    stepOptionsElem.appendChild(button);
+                });
+
+                updateBreadcrumb(step.phase);
+                window.scrollTo({ top: algorithmDisplay.offsetTop - 20, behavior: 'smooth' });
+            }, 50);
+        }
+
+        resetButton.onclick = () => {
+            currentStepId = 'start';
+            renderStep();
+        };
+
+        renderStep();
+    </script>
+</body>
+</html>
