@@ -81,7 +81,7 @@
     </div>
 
     <script>
-        let firstFcLevel = null; // To store the result of the first FC check ('100-249' or '>=250')
+        let firstFcLevel = null; // To store the result of the first FC check ('<100', '100-249', or '>=250')
 
         const steps = {
             'start': {
@@ -173,21 +173,21 @@
                 text: '<p>After 6-8 weeks, what is the repeat Fecal Calprotectin (FC) level?</p>',
                 options: [ 
                     { label: 'Repeat FC < 100 µg/g', value: '<100', style: 'positive' },
-                    { label: 'Repeat FC 100-249 µg/g', value: '100-249', style: 'negative' },
+                    { label: 'Repeat FC 100-249 µg/g', value: '100-249', style: 'neutral' }, // Style changed to neutral as it can lead to capsule
                     { label: 'Repeat FC ≥ 250 µg/g', value: '>=250', style: 'negative' }
                 ],
                 phase: 'screening',
                 isDecision: true
             },
             'outcome_refer_ibd_md_capsule': { 
-                title: 'Action: Referral to IBD MD (Capsule Endoscopy Considered)',
-                text: "<p>Due to elevated or persistently elevated Fecal Calprotectin (two instances of 100-249 µg/g), the individual is referred to an IBD Center MD for evaluation for IBD, consideration of capsule endoscopy if warranted.</p><p>The next step is to determine if IBD is diagnosed.</p>",
+                title: 'Action: Referral to IBD MD',
+                text: "<p>Due to elevated Fecal Calprotectin (one or two instances of 100-249 µg/g), the individual is referred to an IBD Center MD for evaluation for IBD, consideration of further evaluation (e.g. capsule endoscopy, MRE, ileocolonoscopy) if warranted.</p><p>The next step is to determine if IBD is diagnosed.</p>",
                 options: [{ label: 'Proceed to Diagnosis Check', nextStep: 'q_ibd_diagnosed_from_referral' }], 
                 phase: 'screening' 
             },
             'outcome_refer_ibd_md_ileocolonoscopy': { 
-                title: 'Action: Referral to IBD MD (Ileocolonoscopy Considered)',
-                text: "<p>Due to elevated or persistently elevated Fecal Calprotectin (at least one instance ≥250 µg/g, or initial 100-249 µg/g followed by repeat ≥250 µg/g), the individual is referred to an IBD Center MD for evaluation for IBD, with strong consideration for ileocolonoscopy.</p><p>The next step is to determine if IBD is diagnosed.</p>",
+                title: 'Action: Referral to IBD MD with Ileocolonoscopy Strongly Considered',
+                text: "<p>Due to persistently high Fecal Calprotectin (two instances of ≥250 µg/g), the individual is referred to an IBD Center MD for evaluation for IBD, with strong consideration for ileocolonoscopy with biopsies for research.</p><p>The next step is to determine if IBD is diagnosed.</p>",
                 options: [{ label: 'Proceed to Diagnosis Check', nextStep: 'q_ibd_diagnosed_from_referral' }], 
                 phase: 'screening' 
             },
@@ -211,7 +211,7 @@
             },
             'outcome_yearly_followup': {
                 title: 'Outcome: Yearly Follow-Up Advised',
-                text: `<p>IBD was not diagnosed after referral, OR Fecal Calprotectin levels (e.g., repeat FC < 100 µg/g after initial elevation) indicate yearly follow-up, OR risk assessment indicates yearly follow-up.</p>
+                text: `<p>IBD was not diagnosed after referral, OR Fecal Calprotectin levels (e.g., initial FC ≥250 µg/g followed by repeat FC < 100 µg/g) indicate yearly follow-up, OR risk assessment indicates yearly follow-up.</p>
                        <p class="mt-2">The individual should attend the Prevention Clinic for yearly follow-up, which includes:</p>
                        <ul class="list-disc list-inside pl-4 space-y-1 mt-2">
                          <li>Complete Questionnaires</li>
@@ -354,27 +354,29 @@
                     // Special handling for FC checks
                     if (currentStepId === 'q_fc_initial_check') {
                         button.onclick = () => {
-                            if (option.fcLevelValue === '100-249' || option.fcLevelValue === '>=250') {
-                                firstFcLevel = option.fcLevelValue;
-                            } else {
-                                firstFcLevel = null; // Reset if FC < 100
-                            }
+                            firstFcLevel = option.fcLevelValue; // Store the first FC level string
                             currentStepId = option.nextStep;
                             renderStep();
                         };
                     } else if (currentStepId === 'q_fc_repeat_check') {
                         button.onclick = () => {
-                            const repeatFcValue = option.value;
-                            if (repeatFcValue === '<100') {
-                                currentStepId = 'outcome_yearly_followup';
-                            } else if (repeatFcValue === '100-249') {
-                                if (firstFcLevel === '100-249') {
-                                    currentStepId = 'outcome_refer_ibd_md_capsule';
-                                } else { 
-                                    currentStepId = 'outcome_refer_ibd_md_ileocolonoscopy';
-                                }
-                            } else { 
+                            const repeatFcValue = option.value; // This is '<100', '100-249', or '>=250'
+
+                            if (firstFcLevel === '>=250' && repeatFcValue === '>=250') {
                                 currentStepId = 'outcome_refer_ibd_md_ileocolonoscopy';
+                            } else if (
+                                (firstFcLevel === '100-249' && repeatFcValue === '<100') ||
+                                (firstFcLevel === '100-249' && repeatFcValue === '100-249') ||
+                                (firstFcLevel === '100-249' && repeatFcValue === '>=250') ||
+                                (firstFcLevel === '>=250' && repeatFcValue === '100-249')
+                            ) {
+                                currentStepId = 'outcome_refer_ibd_md_capsule';
+                            } else if (repeatFcValue === '<100') { // This handles (firstFcLevel === '>=250' && repeatFcValue === '<100')
+                                currentStepId = 'outcome_yearly_followup';
+                            } else {
+                                // Fallback or error, though all paths should be covered
+                                console.warn("FC Logic Fallthrough:", firstFcLevel, repeatFcValue);
+                                currentStepId = 'outcome_yearly_followup'; // Default to a safe outcome
                             }
                             renderStep();
                         };
